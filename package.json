@@ -1,6 +1,6 @@
 {
 	"name": "vaka-js",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"type": "module",
 	"description": "Vaka is a tiny JavaScript library that provides a reactive state system inspired by Vue.js.",
 	"main": "vaka.js",
