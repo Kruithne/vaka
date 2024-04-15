@@ -1,0 +1,23 @@
+{
+	"name": "vaka-js",
+	"version": "0.0.1",
+	"type": "module",
+	"description": "Vaka is a tiny JavaScript library that provides a reactive state system inspired by Vue.js.",
+	"main": "vaka.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Kruithne/vaka.git"
+	},
+	"keywords": [
+		"reactive",
+		"state",
+		"watcher",
+		"vaka"
+	],
+	"author": "Kruithne (kruithne@gmail.com)",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Kruithne/vaka/issues"
+	},
+	"homepage": "https://github.com/Kruithne/vaka/#readme"
+}
