@@ -55,7 +55,7 @@ function update_target(target, value) {
 			return;
 		}
 
-		target.textContent = value;
+		target.innerText = value;
 		return;
 	}
 
