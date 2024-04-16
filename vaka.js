@@ -48,6 +48,29 @@ export function fmt(str, ...params) {
 	});
 }
 
+/**
+ * Resolves a dot delimited path in a plain object.
+ * 
+ * resolve_object_path('foo.bar', { foo: { bar: 42 } }) => 42
+ * 
+ * @param {string} path 
+ * @param {object} obj
+ * @returns {any} Undefined if the path does not exist in the object.
+ */
+export function resolve_object_path(path, obj) {
+	const path_parts = path.split('.');
+
+	let current = obj;
+	for (const part of path_parts) {
+		if (!current.hasOwnProperty(part))
+			return undefined;
+
+		current = current[part];
+	}
+
+	return current;
+}
+
 function update_target(target, value) {
 	if (target instanceof HTMLElement) {
 		if (target instanceof HTMLInputElement) {
