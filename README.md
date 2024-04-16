@@ -34,7 +34,40 @@ import { reactive, bind } from './path/to/vaka.js';
 
 ## Features
 
-Coming Soon
+### ⚙️ `reactive(initial_state)`
+
+Creates a reactive state object with the provided initial state. Updating properties on this object will update anything bound to that property.
+
+```js
+const state = reactive({
+	foo: 'bar'
+});
+
+state.foo = 'baz'; // this propagates to anything bound to `foo`.
+```
+
+### ⚙️ `bind(element, state, property)`
+
+Bind a reactive state property to a valid target. When the property is updated, the target will be updated to reflect the new value.
+
+Currently supported targets are DOM elements inheriting from `HTMLElement`.
+
+```js
+const my_element = $('#my-element'); // div
+const state = reactive({
+	foo: 'bar'
+});
+
+bind(my_element, state, 'foo');
+state.foo = 'baz'; // this will update the innerText of `my_element`.
+```
+
+Depending on the type of target, the binding will be applied differently. The following targets are currently supported:
+
+| Target | Binding |
+|--------|---------|
+| HTMLElement | `element.innerText` |
+| HTMLInputElement | `element.value` |
 
 ## Error Handling
 
