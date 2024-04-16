@@ -101,6 +101,18 @@ const proxy_handlers = {
 	}
 };
 
+/**
+ * Creates a reactive state object with the provided initial state. Updating properties on this object will update anything bound to that property.
+ * ```js
+ * const state = reactive({
+ * 	foo: 'bar'
+ * });
+
+ * state.foo = 'baz'; // this propagates to anything bound to `foo`.
+ * ```
+ * @param {object} state 
+ * @returns {Proxy<object>}
+ */
 export function reactive(state) {
 	const proxy = new Proxy(state, proxy_handlers);
 
@@ -116,6 +128,24 @@ export function reactive(state) {
 	return proxy;
 }
 
+/**
+ * Bind a reactive state property to a valid target. When the property is updated, the target will be updated to reflect the new value.
+ * 
+ * Currently supported targets are DOM elements inheriting from `HTMLElement`.
+ * 
+ * ```js
+ * const my_element = $('#my-element'); // div
+ * const state = reactive({
+ * 	foo: 'bar'
+ * });
+ * 
+ * bind(my_element, state, 'foo');
+ * state.foo = 'baz'; // this will update the innerText of `my_element`.
+ * ```
+ * @param {HTMLElement} element 
+ * @param {Proxy<object>} state 
+ * @param {string} property 
+ */
 export function bind(element, state, property) {
 	const [base_state, current_key] = resolve_object_path(state, property);
 	const state_meta = state_map.get(base_state);
