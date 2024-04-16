@@ -3,6 +3,7 @@ const state_map = new WeakMap();
 export class VakaError extends Error {
 	static ERR_UNSUPPORTED_BIND = 0x1;
 	static ERR_NON_REACTIVE_STATE = 0x2;
+	static ERR_INVALID_OBJECT_PATH = 0x3;
 
 	constructor(code, ...params) {
 		super(fmt(ERROR_STRINGS[code], ...params));
@@ -16,7 +17,8 @@ export class VakaError extends Error {
 
 const ERROR_STRINGS = {
 	[VakaError.ERR_UNSUPPORTED_BIND]: '"{}" is not a supported target for bind()',
-	[VakaError.ERR_NON_REACTIVE_STATE]: 'Attempted to bind to a non-reactive state object'
+	[VakaError.ERR_NON_REACTIVE_STATE]: 'Attempted to bind to a non-reactive state object',
+	[VakaError.ERR_INVALID_OBJECT_PATH]: 'Unable to resove object path "{}"'
 }
 
 function panic(code, ...params) {
@@ -50,27 +52,34 @@ export function fmt(str, ...params) {
 	});
 }
 
-/**
- * Resolves a dot delimited path in a plain object.
- * 
- * resolve_object_path('foo.bar', { foo: { bar: 42 } }) => 42
- * 
- * @param {string} path 
- * @param {object} obj
- * @returns {any} Undefined if the path does not exist in the object.
- */
-export function resolve_object_path(path, obj) {
+function resolve_object_path(path, obj) {
 	const path_parts = path.split('.');
 
 	let current = obj;
 	for (const part of path_parts) {
 		if (!current.hasOwnProperty(part))
-			return undefined;
+			panic(VakaError.ERR_INVALID_OBJECT_PATH, path);
 
 		current = current[part];
 	}
 
 	return current;
+}
+
+function set_object_path(path, obj, value) {
+	const path_parts = path.split('.');
+	const parts_len = path_parts.length;
+
+	let current = obj;
+	for (let i = 0; i < parts_len - 1; i++) {
+		const part = path_parts[i];
+		if (!current.hasOwnProperty(part))
+			panic(VakaError.ERR_INVALID_OBJECT_PATH, path);
+
+		current = current[part];
+	}
+
+	current[path_parts[parts_len - 1]] = value;
 }
 
 function update_target(target, value) {
@@ -91,38 +100,61 @@ function update_target(target, value) {
 	panic(VakaError.ERR_UNSUPPORTED_BIND, target_type);
 }
 
+const proxy_handlers = {
+	set(target, property, value, receiver) {
+		set_object_path(property, target, value);
+
+		console.log({ target, property, value, receiver });
+
+		const state_meta = state_map.get(receiver);
+		if (!state_meta)
+			return;
+
+		const bindings = state_meta.bindings.get(property);
+		for (const binding of bindings)
+			update_target(binding, value);
+	}
+};
+
 export function reactive(state) {
-	const handler = {
-		set(target, property, value, receiver) {
-			target[property] = value;
-
-			const bindings = state_map.get(receiver)?.bindings?.get(property);
-			if (bindings)
-				for (const binding of bindings)
-					update_target(binding, value);
-		}
-	};
-
-	const proxy = new Proxy(state, handler);
+	const proxy = new Proxy(state, proxy_handlers);
 
 	state_map.set(proxy, {
 		bindings: new Map()
 	});
 
+	for (const [key, value] of Object.entries(state)) {
+		if (typeof value === 'object' && value !== null)
+			state[key] = reactive(value);
+	}
+
 	return proxy;
 }
 
 export function bind(element, state, property) {
-	const state_meta = state_map.get(state);
+	const path_parts = property.split('.');
+	const path_parts_len = path_parts.length;
+
+	let base_state = state;
+	for (let i = 0; i < path_parts_len - 1; i++) {
+		const part = path_parts[i];
+		if (!base_state.hasOwnProperty(part))
+			panic(VakaError.ERR_INVALID_OBJECT_PATH, property);
+
+		base_state = base_state[part];
+	}
+
+	const current_key = path_parts[path_parts_len - 1];
+	const state_meta = state_map.get(base_state);
 	if (!state_meta)
 		panic(VakaError.ERR_NON_REACTIVE_STATE);
 
-	update_target(element, state[property]);
+	update_target(element, base_state[current_key]);
 
 	const bindings = state_meta.bindings;
 
-	if (!bindings.has(property))
-		bindings.set(property, new Set());
+	if (!bindings.has(current_key))
+		bindings.set(current_key, new Set());
 
-	bindings.get(property).add(element);
+	bindings.get(current_key).add(element);
 }
