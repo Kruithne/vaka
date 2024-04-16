@@ -91,8 +91,6 @@ const proxy_handlers = {
 		const [current, key] = resolve_object_path(target, property);
 		current[key] = value;
 
-		console.log({ target, property, value, receiver });
-
 		const state_meta = state_map.get(receiver);
 		if (!state_meta)
 			return;
