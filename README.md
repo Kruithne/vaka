@@ -93,7 +93,29 @@ The `VakaError` class is exported from the `vaka` module and can be used to acce
 
 `VakaError.ERR_UNSUPPORTED_BIND`
 
-This error is thrown when the first argument to `bind()` is not a valid target. Valid targets for `bind()` currently consist of DOM elements inheriting from `HTMLElement`.
+Thrown when the first argument to `bind()` is not a valid target. Valid targets for `bind()` currently consist of DOM elements inheriting from `HTMLElement`.
+
+```js
+bind({}, state, 'foo'); // {} is not a valid target for bind().
+```
+
+`VakaError.ERR_NON_REACTIVE_STATE`
+
+Thrown when a non-reactive state object is provided to `bind()`. Ensure the state object is created using `reactive()` before attempting to bind it.
+
+```js
+const state = { foo: 'bar' };
+bind(my_element, state, 'foo'); // state is not reactive.
+```
+
+`VakaError.ERR_INVALID_OBJECT_PATH`
+
+Thrown when a property path cannot be resolved on the provided object.
+
+```js
+const state = reactive({ foo: { bar: 'baz' } });
+bind(my_element, state, 'foo.bar.qux'); // 'qux' does not exist on 'foo'.
+```
 
 ## Motivation
 
