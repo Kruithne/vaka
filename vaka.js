@@ -32,12 +32,11 @@ function panic(code, ...params) {
  * 
  * Indexless parameters are filled in order.
  * 
+ * ```js
  * fmt('Hello, {0}!', 'world') => 'Hello, world!'
- * 
  * fmt('Hello, {}!', 'world') => 'Hello, world!'
- * 
  * fmt('Hello, {1}! My name is {0}.', 'John', 'world') => 'Hello, world! My name is John.'
- * 
+ * ```
  * @param {string} str 
  * @param  {...any} params 
  * @returns {string}
