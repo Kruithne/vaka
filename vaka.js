@@ -52,20 +52,6 @@ export function fmt(str, ...params) {
 	});
 }
 
-function resolve_object_path(path, obj) {
-	const path_parts = path.split('.');
-
-	let current = obj;
-	for (const part of path_parts) {
-		if (!current.hasOwnProperty(part))
-			panic(VakaError.ERR_INVALID_OBJECT_PATH, path);
-
-		current = current[part];
-	}
-
-	return current;
-}
-
 function set_object_path(path, obj, value) {
 	const path_parts = path.split('.');
 	const parts_len = path_parts.length;
