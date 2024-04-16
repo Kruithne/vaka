@@ -58,8 +58,12 @@ function update_target(target, value) {
 		target.textContent = value;
 		return;
 	}
+
+	let target_type = typeof target;
+	if (target_type === 'object')
+		target_type = target === null ? 'null' : target.constructor.name;
 	
-	panic(VakaError.ERR_UNSUPPORTED_BIND, typeof target);
+	panic(VakaError.ERR_UNSUPPORTED_BIND, target_type);
 }
 
 export function reactive(state) {
