@@ -48,15 +48,6 @@ export function fmt(str, ...params) {
 	});
 }
 
-/**
- * Shorthand for document.getElementById.
- * @param {string} id 
- * @returns HTMLElement|null
- */
-export function $(id) {
-	return document.getElementById(id);
-}
-
 function update_target(target, value) {
 	if (target instanceof HTMLElement) {
 		if (target instanceof HTMLInputElement) {
