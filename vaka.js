@@ -2,6 +2,7 @@ const state_map = new WeakMap();
 
 export class VakaError extends Error {
 	static ERR_UNSUPPORTED_BIND = 0x1;
+	static ERR_NON_REACTIVE_STATE = 0x2;
 
 	constructor(code, ...params) {
 		super(fmt(ERROR_STRINGS[code], ...params));
@@ -14,7 +15,8 @@ export class VakaError extends Error {
 }
 
 const ERROR_STRINGS = {
-	[VakaError.ERR_UNSUPPORTED_BIND]: '"{}" is not a supported target for bind()'
+	[VakaError.ERR_UNSUPPORTED_BIND]: '"{}" is not a supported target for bind()',
+	[VakaError.ERR_NON_REACTIVE_STATE]: 'Attempted to bind to a non-reactive state object'
 }
 
 function panic(code, ...params) {
@@ -115,7 +117,7 @@ export function bind(element, state, property) {
 
 	const state_meta = state_map.get(state);
 	if (!state_meta)
-		throw new Error('bind() called on a non-reactive state object');
+		panic(VakaError.ERR_NON_REACTIVE_STATE);
 
 	const bindings = state_meta.bindings;
 
