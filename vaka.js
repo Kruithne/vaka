@@ -52,20 +52,6 @@ export function fmt(str, ...params) {
 	});
 }
 
-function set_object_path(path, obj, value) {
-	const path_parts = path.split('.');
-	const parts_len = path_parts.length;
-
-	let current = obj;
-	for (let i = 0; i < parts_len - 1; i++) {
-		const part = path_parts[i];
-		if (!current.hasOwnProperty(part))
-			panic(VakaError.ERR_INVALID_OBJECT_PATH, path);
-
-		current = current[part];
-	}
-
-	current[path_parts[parts_len - 1]] = value;
 }
 
 function update_target(target, value) {
