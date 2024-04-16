@@ -113,11 +113,11 @@ export function reactive(state) {
 }
 
 export function bind(element, state, property) {
-	update_target(element, state[property]);
-
 	const state_meta = state_map.get(state);
 	if (!state_meta)
 		panic(VakaError.ERR_NON_REACTIVE_STATE);
+
+	update_target(element, state[property]);
 
 	const bindings = state_meta.bindings;
 
