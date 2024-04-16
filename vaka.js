@@ -52,8 +52,6 @@ export function fmt(str, ...params) {
 	});
 }
 
-}
-
 function update_target(target, value) {
 	if (target instanceof HTMLElement) {
 		if (target instanceof HTMLInputElement) {
@@ -72,9 +70,26 @@ function update_target(target, value) {
 	panic(VakaError.ERR_UNSUPPORTED_BIND, target_type);
 }
 
+function resolve_object_path(target, property) {
+	const path_parts = property.split('.');
+	const parts_len = path_parts.length;
+
+	let base_state = target;
+	for (let i = 0; i < parts_len - 1; i++) {
+		const part = path_parts[i];
+		if (!base_state.hasOwnProperty(part))
+			panic(VakaError.ERR_INVALID_OBJECT_PATH, property);
+
+		base_state = base_state[part];
+	}
+
+	return [base_state, path_parts[parts_len - 1]];
+}
+
 const proxy_handlers = {
 	set(target, property, value, receiver) {
-		set_object_path(property, target, value);
+		const [current, key] = resolve_object_path(target, property);
+		current[key] = value;
 
 		console.log({ target, property, value, receiver });
 
@@ -104,19 +119,7 @@ export function reactive(state) {
 }
 
 export function bind(element, state, property) {
-	const path_parts = property.split('.');
-	const path_parts_len = path_parts.length;
-
-	let base_state = state;
-	for (let i = 0; i < path_parts_len - 1; i++) {
-		const part = path_parts[i];
-		if (!base_state.hasOwnProperty(part))
-			panic(VakaError.ERR_INVALID_OBJECT_PATH, property);
-
-		base_state = base_state[part];
-	}
-
-	const current_key = path_parts[path_parts_len - 1];
+	const [base_state, current_key] = resolve_object_path(state, property);
 	const state_meta = state_map.get(base_state);
 	if (!state_meta)
 		panic(VakaError.ERR_NON_REACTIVE_STATE);
