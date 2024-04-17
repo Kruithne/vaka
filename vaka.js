@@ -1,4 +1,5 @@
-const state_map = new WeakMap();
+const proxy_lookup = new WeakMap();
+const element_lookup = new WeakMap();
 
 export class VakaError extends Error {
 	static ERR_UNSUPPORTED_BIND = 0x1;
@@ -90,7 +91,7 @@ const proxy_handlers = {
 		const [current, key] = resolve_object_path(target, property);
 		current[key] = value;
 
-		const state_meta = state_map.get(receiver);
+		const state_meta = proxy_lookup.get(receiver);
 		if (!state_meta)
 			return;
 
@@ -115,7 +116,7 @@ const proxy_handlers = {
 export function reactive(state) {
 	const proxy = new Proxy(state, proxy_handlers);
 
-	state_map.set(proxy, {
+	proxy_lookup.set(proxy, {
 		bindings: new Map()
 	});
 
@@ -147,7 +148,7 @@ export function reactive(state) {
  */
 export function bind(element, state, property) {
 	const [base_state, current_key] = resolve_object_path(state, property);
-	const state_meta = state_map.get(base_state);
+	const state_meta = proxy_lookup.get(base_state);
 	if (!state_meta)
 		panic(VakaError.ERR_NON_REACTIVE_STATE);
 
@@ -159,4 +160,26 @@ export function bind(element, state, property) {
 		bindings.set(current_key, new Set());
 
 	bindings.get(current_key).add(element);
+
+	element_lookup.set(element, {
+		attached_handler: null, // todo
+		reactive_target: base_state,
+		reactive_key: current_key
+	});
+}
+
+/**
+ * Unbind the reactivity of the given target.
+ * @param {HTMLElement} element 
+ * @returns 
+ */
+export function unbind(element) {
+	const element_meta = element_lookup.get(element);
+	if (!element_meta)
+		return;
+
+	// todo: remove event listener
+
+	const state_meta = proxy_lookup.get(element_meta.reactive_target);
+	state_meta.bindings.get(element_meta.reactive_key).delete(element);
 }

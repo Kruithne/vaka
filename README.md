@@ -69,6 +69,24 @@ Depending on the type of target, the binding will be applied differently. The fo
 | HTMLElement | `element.innerText` |
 | HTMLInputElement | `element.value` |
 
+### ⚙️ `unbind(element)`
+
+Unbinds all reactive bindings from the provided element.
+
+```js
+const my_element = $('#my-element');
+const state = reactive({
+	foo: 'bar'
+});
+
+bind(my_element, state, 'foo');
+state.foo = 'baz'; // this will update the innerText of `my_element`.
+
+unbind(my_element);
+
+state.foo = 'qux'; // this will not update `my_element`.
+```
+
 ## Error Handling
 
 When an error occurs in `vaka` a `VakaError` is thrown. This error contains a `code` property which can be used to quickly identify the error type for fine-grained error handling.
