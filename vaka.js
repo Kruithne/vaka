@@ -95,7 +95,7 @@ const proxy_handlers = {
 		if (!state_meta)
 			return;
 
-		const bindings = state_meta.bindings.get(property);
+		const bindings = state_meta.get(property);
 		for (const binding of bindings)
 			update_target(binding, value);
 	}
@@ -116,9 +116,7 @@ const proxy_handlers = {
 export function reactive(state) {
 	const proxy = new Proxy(state, proxy_handlers);
 
-	proxy_lookup.set(proxy, {
-		bindings: new Map()
-	});
+	proxy_lookup.set(proxy, new Map());
 
 	for (const [key, value] of Object.entries(state)) {
 		if (typeof value === 'object' && value !== null)
@@ -154,12 +152,10 @@ export function bind(element, state, property) {
 
 	update_target(element, base_state[current_key]);
 
-	const bindings = state_meta.bindings;
+	if (!state_meta.has(current_key))
+		state_meta.set(current_key, new Set());
 
-	if (!bindings.has(current_key))
-		bindings.set(current_key, new Set());
-
-	bindings.get(current_key).add(element);
+	state_meta.get(current_key).add(element);
 
 	element_lookup.set(element, {
 		attached_handler: null, // todo
@@ -181,5 +177,5 @@ export function unbind(element) {
 	// todo: remove event listener
 
 	const state_meta = proxy_lookup.get(element_meta.reactive_target);
-	state_meta.bindings.get(element_meta.reactive_key).delete(element);
+	state_meta.get(element_meta.reactive_key).delete(element);
 }
