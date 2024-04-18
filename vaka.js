@@ -159,7 +159,8 @@ export function bind(element, state, property) {
 		raw_target[current_key] = element.value;
 	};
 
-	element.addEventListener('input', callback);
+	if (element instanceof HTMLInputElement)
+		element.addEventListener('input', callback);
 
 	if (!state_meta.has(current_key))
 		state_meta.set(current_key, new Set());
