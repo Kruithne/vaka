@@ -1,4 +1,5 @@
 const proxy_lookup = new WeakMap();
+const proxy_target_lookup = new WeakMap();
 const element_lookup = new WeakMap();
 
 export class VakaError extends Error {
@@ -117,6 +118,7 @@ export function reactive(state) {
 	const proxy = new Proxy(state, proxy_handlers);
 
 	proxy_lookup.set(proxy, new Map());
+	proxy_target_lookup.set(proxy, state);
 
 	for (const [key, value] of Object.entries(state)) {
 		if (typeof value === 'object' && value !== null)
@@ -152,13 +154,20 @@ export function bind(element, state, property) {
 
 	update_target(element, base_state[current_key]);
 
+	const raw_target = proxy_target_lookup.get(base_state);
+	const callback = () => {
+		raw_target[current_key] = element.value;
+	};
+
+	element.addEventListener('input', callback);
+
 	if (!state_meta.has(current_key))
 		state_meta.set(current_key, new Set());
 
 	state_meta.get(current_key).add(element);
 
 	element_lookup.set(element, {
-		attached_handler: null, // todo
+		attached_handler: callback,
 		reactive_target: base_state,
 		reactive_key: current_key
 	});
@@ -174,7 +183,7 @@ export function unbind(element) {
 	if (!element_meta)
 		return;
 
-	// todo: remove event listener
+	element.removeEventListener('input', element_meta.attached_handler);
 
 	const state_meta = proxy_lookup.get(element_meta.reactive_target);
 	state_meta.get(element_meta.reactive_key).delete(element);
