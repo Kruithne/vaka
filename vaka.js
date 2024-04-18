@@ -154,13 +154,13 @@ export function bind(element, state, property) {
 
 	update_target(element, base_state[current_key]);
 
-	const raw_target = proxy_target_lookup.get(base_state);
-	const callback = () => {
-		raw_target[current_key] = element.value;
-	};
+	let callback;
+	if (element instanceof HTMLInputElement) {
+		const raw_target = proxy_target_lookup.get(base_state);
+		callback = () => raw_target[current_key] = element.value;
 
-	if (element instanceof HTMLInputElement)
 		element.addEventListener('input', callback);
+	}
 
 	if (!state_meta.has(current_key))
 		state_meta.set(current_key, new Set());
@@ -184,7 +184,8 @@ export function unbind(element) {
 	if (!element_meta)
 		return;
 
-	element.removeEventListener('input', element_meta.attached_handler);
+	if (element_meta.attached_handler)
+		element.removeEventListener('input', element_meta.attached_handler);
 
 	const state_meta = proxy_lookup.get(element_meta.reactive_target);
 	state_meta.get(element_meta.reactive_key).delete(element);
