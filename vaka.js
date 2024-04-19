@@ -84,8 +84,8 @@ function update_target(target, value) {
  * const [base, key] = resolve_object_property(obj, 'foo.bar');
  * // base = obj.foo, key = 'bar'
  * ```
- * @param {*} target 
- * @param {*} property 
+ * @param {object} target 
+ * @param {string} property 
  * @returns 
  */
 function resolve_object_property(target, property) {
