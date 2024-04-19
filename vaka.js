@@ -1,5 +1,5 @@
-const proxy_lookup = new WeakMap();
-const proxy_target_lookup = new WeakMap();
+const proxy_to_bindings_map = new WeakMap();
+const proxy_to_target_lookup = new WeakMap();
 const element_lookup = new WeakMap();
 
 export class VakaError extends Error {
@@ -71,7 +71,24 @@ function update_target(target, value) {
 	panic(VakaError.ERR_UNSUPPORTED_BIND, target_type);
 }
 
-function resolve_object_path(target, property) {
+/**
+ * Resolves a nested object property path.
+ * 
+ * ```js
+ * const obj = {
+ * 	foo: {
+ * 		bar: 'baz'
+ * 	}
+ * };
+ * 
+ * const [base, key] = resolve_object_property(obj, 'foo.bar');
+ * // base = obj.foo, key = 'bar'
+ * ```
+ * @param {*} target 
+ * @param {*} property 
+ * @returns 
+ */
+function resolve_object_property(target, property) {
 	const path_parts = property.split('.');
 	const parts_len = path_parts.length;
 
@@ -89,10 +106,10 @@ function resolve_object_path(target, property) {
 
 const proxy_handlers = {
 	set(target, property, value, receiver) {
-		const [current, key] = resolve_object_path(target, property);
+		const [current, key] = resolve_object_property(target, property);
 		current[key] = value;
 
-		const state_meta = proxy_lookup.get(receiver);
+		const state_meta = proxy_to_bindings_map.get(receiver);
 		if (!state_meta)
 			return;
 
@@ -107,22 +124,27 @@ const proxy_handlers = {
  * ```js
  * const state = reactive({
  * 	foo: 'bar'
+ * 	qux: {
+ * 		baz: 'quux'
+ * 	}
  * });
 
  * state.foo = 'baz'; // this propagates to anything bound to `foo`.
+ * state.qux.baz = 'corge'; // nested objects are reactive too.
  * ```
- * @param {object} state 
+ * @param {object} initial_state 
  * @returns {Proxy<object>}
  */
-export function reactive(state) {
-	const proxy = new Proxy(state, proxy_handlers);
+export function reactive(initial_state) {
+	const proxy = new Proxy(initial_state, proxy_handlers);
 
-	proxy_lookup.set(proxy, new Map());
-	proxy_target_lookup.set(proxy, state);
+	proxy_to_bindings_map.set(proxy, new Map());
+	proxy_to_target_lookup.set(proxy, initial_state);
 
-	for (const [key, value] of Object.entries(state)) {
+	// apply proxies recursively to nested objects
+	for (const [key, value] of Object.entries(initial_state)) {
 		if (typeof value === 'object' && value !== null)
-			state[key] = reactive(value);
+			initial_state[key] = reactive(value);
 	}
 
 	return proxy;
@@ -147,8 +169,8 @@ export function reactive(state) {
  * @param {string} property 
  */
 export function bind(element, state, property) {
-	const [base_state, current_key] = resolve_object_path(state, property);
-	const state_meta = proxy_lookup.get(base_state);
+	const [base_state, current_key] = resolve_object_property(state, property);
+	const state_meta = proxy_to_bindings_map.get(base_state);
 	if (!state_meta)
 		panic(VakaError.ERR_NON_REACTIVE_STATE);
 
@@ -156,7 +178,7 @@ export function bind(element, state, property) {
 
 	let callback;
 	if (element instanceof HTMLInputElement) {
-		const raw_target = proxy_target_lookup.get(base_state);
+		const raw_target = proxy_to_target_lookup.get(base_state);
 		callback = () => raw_target[current_key] = element.value;
 
 		element.addEventListener('input', callback);
@@ -187,6 +209,6 @@ export function unbind(element) {
 	if (element_meta.attached_handler)
 		element.removeEventListener('input', element_meta.attached_handler);
 
-	const state_meta = proxy_lookup.get(element_meta.reactive_target);
+	const state_meta = proxy_to_bindings_map.get(element_meta.reactive_target);
 	state_meta.get(element_meta.reactive_key).delete(element);
 }
