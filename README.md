@@ -103,6 +103,37 @@ watch(state, 'foo', (orig_value, new_value) => {
 state.foo = 'baz'; // this will log "foo changed from bar to baz".
 ```
 
+In addition to being a callback, the return value of a watcher is used to validate or reject the property change.
+
+Returning `undefined` (or nothing) will allow the change to proceed. Returning the `REJECT_CHANGE` constant exported from `vaka` will reject the change.
+
+```js
+const state = reactive({
+	foo: 'bar'
+});
+
+watch(state, 'foo', (orig_value, new_value) => {
+	if (new_value === 'baz')
+		return REJECT_CHANGE;
+});
+
+state.foo = 'baz'; // this will not update `foo`.
+```
+If any other value is returned from the watcher, including `null` and falsy values, that value will be used as the new value for the property.
+
+```js
+const state = reactive({
+	foo: 5000
+});
+
+watch(state, 'foo', (orig_value, new_value) => {
+	if (typeof new_value !== 'number')
+		return parseInt(new_value);
+});
+
+state.foo = '100'; // this will update `foo` to 100.
+```
+
 ## Error Handling
 
 When an error occurs in `vaka` a `VakaError` is thrown. This error contains a `code` property which can be used to quickly identify the error type for fine-grained error handling.

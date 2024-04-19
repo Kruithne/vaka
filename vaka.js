@@ -2,6 +2,8 @@ const proxy_to_bindings_map = new WeakMap();
 const proxy_to_target_lookup = new WeakMap();
 const element_lookup = new WeakMap();
 
+export const REJECT_CHANGE = Symbol('VAKA_REJECT_CHANGE');
+
 export class VakaError extends Error {
 	static ERR_UNSUPPORTED_BIND = 0x1;
 	static ERR_NON_REACTIVE_STATE = 0x2;
@@ -120,13 +122,21 @@ const proxy_handlers = {
 			return;
 
 		const property_state = get_property_state(state_meta, property);
+
+		let new_value = value;
+		for (const watcher of property_state.watchers) {
+			const watcher_return = watcher(target[property], value);
+
+			if (watcher_return === REJECT_CHANGE)
+				new_value = target[property];
+			else if (watcher_return !== undefined)
+				new_value = watcher_return;
+		}
+
 		for (const binding of property_state.bindings)
-			update_target(binding, value);
+			update_target(binding, new_value);
 
-		for (const watcher of property_state.watchers)
-			watcher(target[property], value);
-
-		current[key] = value;
+		current[key] = new_value;
 	}
 };
 
