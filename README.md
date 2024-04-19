@@ -87,6 +87,22 @@ unbind(my_element);
 state.foo = 'qux'; // this will not update `my_element`.
 ```
 
+### ⚙️ `watch(state, property, callback)`
+
+Watch a reactive state property for changes. When the property is updated, the provided callback will be invoked.
+
+```js
+const state = reactive({
+	foo: 'bar'
+});
+
+watch(state, 'foo', (orig_value, new_value) => {
+	console.log(`foo changed from ${orig_value} to ${new_value}`);
+});
+
+state.foo = 'baz'; // this will log "foo changed from bar to baz".
+```
+
 ## Error Handling
 
 When an error occurs in `vaka` a `VakaError` is thrown. This error contains a `code` property which can be used to quickly identify the error type for fine-grained error handling.

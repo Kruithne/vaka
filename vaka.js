@@ -104,18 +104,29 @@ function resolve_object_property(target, property) {
 	return [base_state, path_parts[parts_len - 1]];
 }
 
+function get_property_state(state, key) {
+	if (!state.has(key))
+		state.set(key, { bindings: new Set(), watchers: new Set() });
+
+	return state.get(key);
+}
+
 const proxy_handlers = {
 	set(target, property, value, receiver) {
 		const [current, key] = resolve_object_property(target, property);
-		current[key] = value;
 
 		const state_meta = proxy_to_bindings_map.get(receiver);
 		if (!state_meta)
 			return;
 
-		const bindings = state_meta.get(property);
-		for (const binding of bindings)
+		const property_state = get_property_state(state_meta, property);
+		for (const binding of property_state.bindings)
 			update_target(binding, value);
+
+		for (const watcher of property_state.watchers)
+			watcher(target[property], value);
+
+		current[key] = value;
 	}
 };
 
@@ -184,10 +195,7 @@ export function bind(element, state, property) {
 		element.addEventListener('input', callback);
 	}
 
-	if (!state_meta.has(current_key))
-		state_meta.set(current_key, new Set());
-
-	state_meta.get(current_key).add(element);
+	get_property_state(state_meta, current_key).bindings.add(element);
 
 	element_lookup.set(element, {
 		attached_handler: callback,
@@ -210,5 +218,20 @@ export function unbind(element) {
 		element.removeEventListener('input', element_meta.attached_handler);
 
 	const state_meta = proxy_to_bindings_map.get(element_meta.reactive_target);
-	state_meta.get(element_meta.reactive_key).delete(element);
+	state_meta.get(element_meta.reactive_key).bindings.delete(element);
+}
+
+/**
+ * Hook a callback to a reactive state property to be called when the property is updated.
+ * @param {Proxy} state 
+ * @param {string} property 
+ * @param {function} callback 
+ */
+export function watch(state, property, callback) {
+	const [base_state, current_key] = resolve_object_property(state, property);
+	const state_meta = proxy_to_bindings_map.get(base_state);
+	if (!state_meta)
+		panic(VakaError.ERR_NON_REACTIVE_STATE);
+
+	get_property_state(state_meta, current_key).watchers.add(callback);
 }
