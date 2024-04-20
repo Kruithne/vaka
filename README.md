@@ -134,6 +134,9 @@ watch(state, 'foo', (orig_value, new_value) => {
 
 state.foo = '100'; // this will update `foo` to 100.
 ```
+## Pitfalls
+
+- 🚧 Reactive HTML elements are monitored for `input` events. Setting their `.value` programatically from JavaScript does not trigger reactivity.
 
 ## Error Handling
 
