@@ -194,14 +194,6 @@ export function bind(element, state, property) {
 			panic(VakaError.ERR_INVALID_ELEMENT_ID, element_id);
 	}
 
-	if (element_lookup.has(element))
-		panic(VakaError.ERR_DUPLICATE_BINDING);
-
-	const [base_state, current_key] = resolve_object_property(state, property);
-	const state_meta = proxy_to_bindings_map.get(base_state);
-	if (!state_meta)
-		panic(VakaError.ERR_NON_REACTIVE_STATE);
-
 	if (!(element instanceof HTMLElement)) {
 		let target_type = typeof target;
 		if (target_type === 'object')
@@ -209,6 +201,14 @@ export function bind(element, state, property) {
 
 		panic(VakaError.ERR_UNSUPPORTED_BIND, target_type);
 	}
+
+	if (element_lookup.has(element))
+		panic(VakaError.ERR_DUPLICATE_BINDING);
+
+	const [base_state, current_key] = resolve_object_property(state, property);
+	const state_meta = proxy_to_bindings_map.get(base_state);
+	if (!state_meta)
+		panic(VakaError.ERR_NON_REACTIVE_STATE);
 
 	update_target(element, base_state[current_key]);
 
