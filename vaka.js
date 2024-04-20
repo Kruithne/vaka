@@ -68,12 +68,6 @@ function update_target(target, value) {
 		target.innerText = value;
 		return;
 	}
-
-	let target_type = typeof target;
-	if (target_type === 'object')
-		target_type = target === null ? 'null' : target.constructor.name;
-	
-	panic(VakaError.ERR_UNSUPPORTED_BIND, target_type);
 }
 
 /**
@@ -198,6 +192,14 @@ export function bind(element, state, property) {
 	const state_meta = proxy_to_bindings_map.get(base_state);
 	if (!state_meta)
 		panic(VakaError.ERR_NON_REACTIVE_STATE);
+
+	if (!(element instanceof HTMLElement)) {
+		let target_type = typeof target;
+		if (target_type === 'object')
+			target_type = target === null ? 'null' : target.constructor.name;
+
+		panic(VakaError.ERR_UNSUPPORTED_BIND, target_type);
+	}
 
 	update_target(element, base_state[current_key]);
 
