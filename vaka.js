@@ -59,15 +59,12 @@ export function fmt(str, ...params) {
 }
 
 function update_target(target, value) {
-	if (target instanceof HTMLElement) {
-		if (target instanceof HTMLInputElement) {
-			target.value = value;
-			return;
-		}
-
-		target.innerText = value;
+	if (target instanceof HTMLInputElement) {
+		target.value = value;
 		return;
 	}
+
+	target.innerText = value;
 }
 
 /**
