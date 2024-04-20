@@ -56,6 +56,30 @@ const state = reactive({
 state.foo = 'baz'; // this propagates to anything bound to `foo`.
 ```
 
+Nested objects are also reactive. Changes to nested properties will propagate to anything bound to the parent object or property.
+
+```js
+const state = reactive({
+	foo: {
+		bar: 'baz'
+	}
+});
+
+state.foo.bar = 'qux'; // this propagates to anything bound to `foo.bar`.
+```
+
+Objects added to a reactive object after creation will be made reactive, but changes to the original object will not propogate, you must reference the reactive object directly.
+
+```js
+const state = reactive({ foo: 'bar' }); // initial state
+
+const new_obj = { baz: 'qux' };
+state.bar = new_obj;
+
+state.bar.baz = 'quux'; // this propagates to anything bound to `bar.baz`.
+new_obj.baz = 'quux'; // this does not propagate.
+```
+
 ### ⚙️ `bind(element, state, property)`
 
 Bind a reactive state property to a valid target. When the property is updated, the target will be updated to reflect the new value.
@@ -158,6 +182,7 @@ state.foo = '100'; // this will update `foo` to 100.
 ## Pitfalls
 
 - 🚧 Reactive HTML elements are monitored for `input` events. Setting their `.value` programatically from JavaScript does not trigger reactivity.
+- 🚧 Directly modifying an object used to initiate state, or one that is inserted into a reactive object after creation, will not trigger reactivity. Always reference the proxy!
 
 ## Error Handling
 
