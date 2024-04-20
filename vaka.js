@@ -1,5 +1,4 @@
 const proxy_to_bindings_map = new WeakMap();
-const proxy_to_target_lookup = new WeakMap();
 const element_lookup = new WeakMap();
 
 export const REJECT_CHANGE = Symbol('VAKA_REJECT_CHANGE');
@@ -159,7 +158,6 @@ export function reactive(initial_state) {
 	const proxy = new Proxy(initial_state, proxy_handlers);
 
 	proxy_to_bindings_map.set(proxy, new Map());
-	proxy_to_target_lookup.set(proxy, initial_state);
 
 	// apply proxies recursively to nested objects
 	for (const [key, value] of Object.entries(initial_state)) {
