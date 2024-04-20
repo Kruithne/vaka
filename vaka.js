@@ -50,7 +50,7 @@ function panic(code, ...params) {
  * @param  {...any} params 
  * @returns {string}
  */
-export function fmt(str, ...params) {
+function fmt(str, ...params) {
 	let i = 0;
 	return str.replace(/{(\d*)}/g, (match, p1) => {
 		if (p1 === '')
