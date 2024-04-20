@@ -182,6 +182,10 @@ const state = reactive({ foo: { bar: 'baz' } });
 bind(my_element, state, 'foo.bar.qux'); // 'qux' does not exist on 'foo'.
 ```
 
+`VakaError.ERR_BAD_PROXY`
+
+Thrown when a proxy trap is called on a non-reactive object. This should never occur in normal usage.
+
 ## Motivation
 
 Reactivity as a concept is great for web development. It allows the gap between HTML (DOM) and JS to be bridged much more seamlessly, getting rid of endless boilerplate.

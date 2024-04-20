@@ -7,6 +7,7 @@ export class VakaError extends Error {
 	static ERR_UNSUPPORTED_BIND = 0x1;
 	static ERR_NON_REACTIVE_STATE = 0x2;
 	static ERR_INVALID_OBJECT_PATH = 0x3;
+	static ERR_BAD_PROXY = 0x4;
 
 	constructor(code, ...params) {
 		super(fmt(ERROR_STRINGS[code], ...params));
@@ -21,7 +22,8 @@ export class VakaError extends Error {
 const ERROR_STRINGS = {
 	[VakaError.ERR_UNSUPPORTED_BIND]: '"{}" is not a supported target for bind()',
 	[VakaError.ERR_NON_REACTIVE_STATE]: 'Attempted to bind to a non-reactive state object',
-	[VakaError.ERR_INVALID_OBJECT_PATH]: 'Unable to resove object path "{}"'
+	[VakaError.ERR_INVALID_OBJECT_PATH]: 'Unable to resove object path "{}"',
+	[VakaError.ERR_BAD_PROXY]: 'Proxy trap called without a valid state object'
 }
 
 function panic(code, ...params) {
@@ -116,7 +118,7 @@ const proxy_handlers = {
 	set(target, property, value, receiver) {
 		const state_meta = proxy_to_bindings_map.get(receiver);
 		if (!state_meta)
-			return false; // todo: throw our own error here.
+			panic(VakaError.ERR_BAD_PROXY);
 
 		const property_state = get_property_state(state_meta, property);
 
