@@ -177,11 +177,16 @@ export function reactive(initial_state) {
  * bind(my_element, state, 'foo');
  * state.foo = 'baz'; // this will update the innerText of `my_element`.
  * ```
- * @param {HTMLElement} element 
+ * 
+ * For brevity, `element` can be an element ID which will be resolved to an element using `document.getElementById`.
+ * @param {HTMLElement|string} element 
  * @param {Proxy<object>} state 
  * @param {string} property 
  */
 export function bind(element, state, property) {
+	if (typeof element === 'string')
+		element = document.getElementById(element);
+
 	if (element_lookup.has(element))
 		panic(VakaError.ERR_DUPLICATE_BINDING);
 
@@ -217,10 +222,13 @@ export function bind(element, state, property) {
 
 /**
  * Unbind the reactivity of the given target.
- * @param {HTMLElement} element 
+ * @param {HTMLElement|string} element 
  * @returns 
  */
 export function unbind(element) {
+	if (typeof element === 'string')
+		element = document.getElementById(element);
+
 	const element_meta = element_lookup.get(element);
 	if (!element_meta)
 		return;

@@ -79,6 +79,12 @@ Depending on the type of target, the binding will be applied differently. The fo
 | HTMLElement | `element.innerText` |
 | HTMLInputElement | `element.value` |
 
+For brevity, the `element` parameter can be an element ID string, which will be resolved using `document.getElementById()`.
+
+```js
+bind('my-element', state, 'foo');
+```
+
 ### ⚙️ `unbind(element)`
 
 Unbinds all reactive bindings from the provided element.
@@ -95,6 +101,12 @@ state.foo = 'baz'; // this will update the innerText of `my_element`.
 unbind(my_element);
 
 state.foo = 'qux'; // this will not update `my_element`.
+```
+
+For brevity, the `element` parameter can be an element ID string, which will be resolved using `document.getElementById()`.
+
+```js
+unbind('my-element');
 ```
 
 ### ⚙️ `watch(state, property, callback)`
