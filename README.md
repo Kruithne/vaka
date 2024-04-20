@@ -198,6 +198,14 @@ const state = { foo: 'bar' };
 bind(my_element, state, 'foo'); // state is not reactive.
 ```
 
+`VakaError.ERR_INVALID_ELEMENT_ID`
+
+Thrown when an element ID string is provided to `bind()` or `unbind()` but the element cannot be resolved using `document.getElementById()`.
+
+```js
+bind('non-existent-element', state, 'foo'); // element does not exist.
+```
+
 `VakaError.ERR_INVALID_OBJECT_PATH`
 
 Thrown when a property path cannot be resolved on the provided object.

@@ -9,6 +9,7 @@ export class VakaError extends Error {
 	static ERR_INVALID_OBJECT_PATH = 0x3;
 	static ERR_BAD_PROXY = 0x4;
 	static ERR_DUPLICATE_BINDING = 0x5;
+	static ERR_INVALID_ELEMENT_ID = 0x6;
 
 	constructor(code, ...params) {
 		super(fmt(ERROR_STRINGS[code], ...params));
@@ -26,6 +27,7 @@ const ERROR_STRINGS = {
 	[VakaError.ERR_INVALID_OBJECT_PATH]: 'Unable to resove object path "{}"',
 	[VakaError.ERR_BAD_PROXY]: 'Proxy trap called without a valid state object',
 	[VakaError.ERR_DUPLICATE_BINDING]: 'Element already bound to a reactive state property',
+	[VakaError.ERR_INVALID_ELEMENT_ID]: 'Attempted to bind to an invalid element ID "{}"',
 }
 
 function panic(code, ...params) {
@@ -184,8 +186,13 @@ export function reactive(initial_state) {
  * @param {string} property 
  */
 export function bind(element, state, property) {
-	if (typeof element === 'string')
+	if (typeof element === 'string') {
+		const element_id = element;
 		element = document.getElementById(element);
+
+		if (!element)
+			panic(VakaError.ERR_INVALID_ELEMENT_ID, element_id);
+	}
 
 	if (element_lookup.has(element))
 		panic(VakaError.ERR_DUPLICATE_BINDING);
@@ -226,8 +233,13 @@ export function bind(element, state, property) {
  * @returns 
  */
 export function unbind(element) {
-	if (typeof element === 'string')
+	if (typeof element === 'string') {
+		const element_id = element;
 		element = document.getElementById(element);
+
+		if (!element)
+			panic(VakaError.ERR_INVALID_ELEMENT_ID, element_id);
+	}
 
 	const element_meta = element_lookup.get(element);
 	if (!element_meta)
