@@ -127,6 +127,9 @@ const proxy_handlers = {
 				new_value = watcher_return;
 		}
 
+		if (typeof new_value === 'object' && new_value !== null)
+			new_value = reactive(new_value);
+
 		for (const binding of property_state.bindings)
 			update_target(binding, new_value);
 
