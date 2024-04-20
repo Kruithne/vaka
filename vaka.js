@@ -8,6 +8,7 @@ export class VakaError extends Error {
 	static ERR_NON_REACTIVE_STATE = 0x2;
 	static ERR_INVALID_OBJECT_PATH = 0x3;
 	static ERR_BAD_PROXY = 0x4;
+	static ERR_DUPLICATE_BINDING = 0x5;
 
 	constructor(code, ...params) {
 		super(fmt(ERROR_STRINGS[code], ...params));
@@ -23,7 +24,8 @@ const ERROR_STRINGS = {
 	[VakaError.ERR_UNSUPPORTED_BIND]: '"{}" is not a supported target for bind()',
 	[VakaError.ERR_NON_REACTIVE_STATE]: 'Attempted to bind to a non-reactive state object',
 	[VakaError.ERR_INVALID_OBJECT_PATH]: 'Unable to resove object path "{}"',
-	[VakaError.ERR_BAD_PROXY]: 'Proxy trap called without a valid state object'
+	[VakaError.ERR_BAD_PROXY]: 'Proxy trap called without a valid state object',
+	[VakaError.ERR_DUPLICATE_BINDING]: 'Element already bound to a reactive state property',
 }
 
 function panic(code, ...params) {
@@ -189,6 +191,9 @@ export function reactive(initial_state) {
  * @param {string} property 
  */
 export function bind(element, state, property) {
+	if (element_lookup.has(element))
+		panic(VakaError.ERR_DUPLICATE_BINDING);
+
 	const [base_state, current_key] = resolve_object_property(state, property);
 	const state_meta = proxy_to_bindings_map.get(base_state);
 	if (!state_meta)

@@ -182,6 +182,18 @@ const state = reactive({ foo: { bar: 'baz' } });
 bind(my_element, state, 'foo.bar.qux'); // 'qux' does not exist on 'foo'.
 ```
 
+`VakaError.ERR_DUPLICATE_BINDING`
+
+Thrown when attempting to bind an element to a reactive property when that element is already bound to a different property.
+
+This error is thrown instead of silently unbinding the previous property to prevent unexpected behaviour. If you wish to rebind an element to a different property, you should unbind it first. Binding to multiple properties is not supported.
+
+```js
+const state = reactive({ foo: 'bar', baz: 'qux' });
+bind(my_element, state, 'foo');
+bind(my_element, state, 'baz'); // throws ERR_DUPLICATE_BINDING
+```
+
 `VakaError.ERR_BAD_PROXY`
 
 Thrown when a proxy trap is called on a non-reactive object. This should never occur in normal usage.
