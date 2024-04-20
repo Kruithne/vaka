@@ -115,8 +115,6 @@ function get_property_state(state, key) {
 
 const proxy_handlers = {
 	set(target, property, value, receiver) {
-		const [current, key] = resolve_object_property(target, property);
-
 		const state_meta = proxy_to_bindings_map.get(receiver);
 		if (!state_meta)
 			return;
@@ -136,7 +134,7 @@ const proxy_handlers = {
 		for (const binding of property_state.bindings)
 			update_target(binding, new_value);
 
-		current[key] = new_value;
+		target[property] = new_value;
 	}
 };
 
