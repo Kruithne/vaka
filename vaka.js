@@ -117,7 +117,7 @@ const proxy_handlers = {
 	set(target, property, value, receiver) {
 		const state_meta = proxy_to_bindings_map.get(receiver);
 		if (!state_meta)
-			return;
+			return false; // todo: throw our own error here.
 
 		const property_state = get_property_state(state_meta, property);
 
@@ -135,6 +135,7 @@ const proxy_handlers = {
 			update_target(binding, new_value);
 
 		target[property] = new_value;
+		return true;
 	}
 };
 
