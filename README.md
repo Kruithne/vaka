@@ -2,6 +2,15 @@
 
 `vaka` is a tiny JavaScript library that provides a reactive state system inspired by Vue.js.
 
+- [Usage](#usage)
+- [Key Points](#key-points)
+- [Features](#features)
+- [Pitfalls](#pitfalls)
+- [Error Handling](#error-handling)
+- [Errors](#errors)
+- [Motivation](#motivation)
+- [Footnotes](#footnotes)
+
 ## ⚠️ Active Development
 
 This library is actively in the early stages of development. Feedback is welcome, however I highly recommend not using `vaka` in production until v1.
