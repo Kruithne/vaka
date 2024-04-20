@@ -31,6 +31,7 @@ import { reactive, bind } from './path/to/vaka.js';
 - Built using modern JavaScript features (Proxies, promises, ESM).
 - Written in plain JavaScript, no build step required.
 - Tree-shakeable.
+- Tiny footprint (6kb unminified vs Vue.js 400kb).
 
 ## Features
 
