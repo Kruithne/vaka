@@ -198,9 +198,7 @@ export function bind(element, state, property) {
 
 	let callback;
 	if (element instanceof HTMLInputElement) {
-		const raw_target = proxy_to_target_lookup.get(base_state);
-		callback = () => raw_target[current_key] = element.value;
-
+		callback = () => base_state[current_key] = element.value;
 		element.addEventListener('input', callback);
 	}
 
