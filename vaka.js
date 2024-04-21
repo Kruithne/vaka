@@ -1,5 +1,6 @@
 const proxy_to_bindings_map = new WeakMap();
 const element_lookup = new WeakMap();
+const array_proxy_to_bindings_map = new WeakMap();
 
 export const REJECT_CHANGE = Symbol('VAKA_REJECT_CHANGE');
 
@@ -109,6 +110,41 @@ function get_property_state(state, key) {
 	return state.get(key);
 }
 
+const array_proxy_handlers = {
+	set(target, property, value, receiver) {
+		if (property === 'length')
+			return true;
+
+		const state_meta = array_proxy_to_bindings_map.get(receiver);
+		if (!state_meta)
+			panic(VakaError.ERR_BAD_PROXY);
+
+		console.log(state_meta);
+
+		const index = parseInt(property);
+
+		let new_value = value;
+		for (const watcher of state_meta.watchers) {
+			const watcher_return = watcher(target[index], value, index);
+
+			if (watcher_return === REJECT_CHANGE)
+				new_value = target[index];
+			else if (watcher_return !== undefined)
+				new_value = watcher_return;
+		}
+
+		if (typeof new_value === 'object' && new_value !== null)
+			new_value = reactive(new_value); // todo: ensure not an array.
+
+		target[index] = new_value;
+
+		for (const binding of state_meta.bindings)
+			update_target(binding, target);
+
+		return true;
+	}
+}
+
 const proxy_handlers = {
 	set(target, property, value, receiver) {
 		const state_meta = proxy_to_bindings_map.get(receiver);
@@ -161,9 +197,20 @@ export function reactive(initial_state) {
 
 	// apply proxies recursively to nested objects
 	for (const [key, value] of Object.entries(initial_state)) {
-		if (typeof value === 'object' && value !== null)
-			initial_state[key] = reactive(value);
+		if (typeof value === 'object' && value !== null) {
+			if (Array.isArray(value))
+				initial_state[key] = reactive_array(value, proxy);
+			else
+				initial_state[key] = reactive(value);
+		}
 	}
+
+	return proxy;
+}
+
+function reactive_array(target_array) {
+	const proxy = new Proxy(target_array, array_proxy_handlers);
+	array_proxy_to_bindings_map.set(proxy, { bindings: new Set(), watchers: new Set() });
 
 	return proxy;
 }
@@ -209,7 +256,12 @@ export function bind(element, state, property) {
 		panic(VakaError.ERR_DUPLICATE_BINDING);
 
 	const [base_state, current_key] = resolve_object_property(state, property);
-	const state_meta = proxy_to_bindings_map.get(base_state);
+
+	const target = base_state[current_key];
+	const is_target_array = Array.isArray(target);
+
+	const state_meta = is_target_array ? array_proxy_to_bindings_map.get(target) : proxy_to_bindings_map.get(base_state);
+
 	if (!state_meta)
 		panic(VakaError.ERR_NON_REACTIVE_STATE);
 
@@ -221,7 +273,10 @@ export function bind(element, state, property) {
 		element.addEventListener('input', callback);
 	}
 
-	get_property_state(state_meta, current_key).bindings.add(element);
+	if (is_target_array)
+		state_meta.bindings.add(element);
+	else
+		get_property_state(state_meta, current_key).bindings.add(element);
 
 	element_lookup.set(element, {
 		attached_handler: callback,
