@@ -122,13 +122,14 @@ const array_proxy_handlers = {
 		console.log(state_meta);
 
 		const index = parseInt(property);
+		const current_value = target[index];
 
 		let new_value = value;
 		for (const watcher of state_meta.watchers) {
-			const watcher_return = watcher(target[index], value, index);
+			const watcher_return = watcher(current_value, value, index);
 
 			if (watcher_return === REJECT_CHANGE)
-				new_value = target[index];
+				new_value = current_value;
 			else if (watcher_return !== undefined)
 				new_value = watcher_return;
 		}
@@ -150,12 +151,13 @@ const proxy_handlers = {
 
 		const property_state = get_property_state(state_meta, property);
 
+		const current_value = target[property];
 		let new_value = value;
 		for (const watcher of property_state.watchers) {
-			const watcher_return = watcher(target[property], value);
+			const watcher_return = watcher(current_value, value);
 
 			if (watcher_return === REJECT_CHANGE)
-				new_value = target[property];
+				new_value = current_value;
 			else if (watcher_return !== undefined)
 				new_value = watcher_return;
 		}
